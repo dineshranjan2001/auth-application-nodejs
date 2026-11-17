@@ -7,6 +7,8 @@
     "start": "node ./src/server.js",
     "dev": "node --watch ./src/server.js",
     "prisma:init":"npx prisma init --datasource-provider postgresql --output ../generated/prisma",
+    "prisma-migration:reset":"npx prisma migrate reset",
+    "db:sync": "node -e \"const { execSync } = require('child_process'); const name = process.argv[1] || ''; execSync('npx prisma migrate dev ' + (name ? '--name ' + JSON.stringify(name) : '') + ' && npx prisma generate', { stdio: 'inherit' });\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
