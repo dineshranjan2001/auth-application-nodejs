@@ -41,6 +41,29 @@ class AuthService {
         }
 
     }
+
+    refreshToken=async(refreshToken)=>{
+        const oldRefreshTokenHashed=hashRefreshToken(refreshToken);
+        const getRefreshTokenData=await authRepository.fetchRefreshTokenByToken(oldRefreshTokenHashed);
+        if(!getRefreshTokenData){
+            throw new AppError("Invalid refresh token",400);
+        }
+
+        const newRefreshToken=generateRefreshToken();
+        const hashedNewRfreshToken=hashRefreshToken(newRefreshToken);
+        const operationResult=await authRepository.checkRefreshTokenAndOperationSession(oldRefreshTokenHashed,hashedNewRfreshToken,getRefreshTokenData.sessionId);
+        if(operationResult.status==="REUSED"){
+            throw new AppError("Refresh token reuse detected. Session revoked.",400);
+        }
+        if(operationResult.status!=="SUCCESS"){
+            throw new AppError("Invalid or expired refresh token",400);
+        }
+        const accessToken = generateAccessToken(operationResult.userId,operationResult.sessionId);
+        return{
+            accessToken,
+            refreshToken:newRefreshToken
+        };
+    }
 }
 
 export default new AuthService();
