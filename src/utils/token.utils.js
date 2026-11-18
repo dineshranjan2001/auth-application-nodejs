@@ -54,12 +54,21 @@ export const verifyAccessToken = (token) => {
   return { sub: decodedToken.sub, sid: decodedToken.sid };
 };
 
-// Generate cryptographically secure refresh token and return a string
+
+/**
+ *Generate cryptographically secure refresh token and return a string
+ *@returns{string} return refresh JWT token
+*/
 export const generateRefreshToken = () => {
   return crypto.randomBytes(64).toString("base64url");
 };
 
-// SHA-256 hash of refresh token and return a string
+/**
+ * SHA-256 hash of refresh token and return a string
+ * @param{string} token- JWT token
+ * @returns{string} return hased JWT Refresh token
+ * */ 
+
 export const hashRefreshToken = (token) => {
   return crypto.createHash("sha256").update(token).digest("hex");
 };
