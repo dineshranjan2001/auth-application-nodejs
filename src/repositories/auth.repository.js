@@ -1,6 +1,22 @@
 import { prisma } from "../configs/prisma-client.config.js";
 
 class AuthRepository {
+  register = async (userData) => {
+    const createdUserData=await prisma.user.create({
+      data: userData,
+      select:{
+        id: true,
+        name: true,
+        email: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+      }
+    });
+    //const {password:_,...otherUserData}=createdUserData;
+    return createdUserData;
+  }
+
   fetchUserByEmail = async (email) => {
     return await prisma.user.findUnique({
       where: {
@@ -13,11 +29,11 @@ class AuthRepository {
     return await prisma.$transaction(async (tx) => {
       const newSession = await tx.session.create({
         data: {
-          userId: sessionData.id,
-          userAgent: sessionData.userAgent,
-          ipAddress: sessionData.ipAddress,
-          deviceInfo: sessionData.userAgent,
-          expiresAt: sessionData.expiresAt,
+          userId: sessionData?.userId,
+          userAgent: sessionData?.userAgent,
+          ipAddress: sessionData?.ipAddress,
+          deviceInfo: sessionData?.userAgent,
+          expiresAt: sessionData?.expiresAt,
         },
       });
 
@@ -44,7 +60,11 @@ class AuthRepository {
     });
   };
 
-  checkRefreshTokenAndOperationSession = async (oldToken, newToken, sessionId) => {
+  checkRefreshTokenAndOperationSession = async (
+    oldToken,
+    newToken,
+    sessionId,
+  ) => {
     // lock the row of session
     const result = await prisma.$transaction(async (tx) => {
       await tx.$queryRaw`
@@ -103,10 +123,10 @@ class AuthRepository {
             revokedAt: new Date(),
           },
         });
-        return { status: "REUSED" }
+        return { status: "REUSED" };
       }
       if (getRefreshToken.expiresAt <= new Date()) {
-        return { status: "EXPIRED" }
+        return { status: "EXPIRED" };
       }
 
       // generate the next refresh token record.
@@ -114,74 +134,74 @@ class AuthRepository {
         data: {
           sessionId: getSession.id,
           token: newToken,
-          expiresAt: getSession.expiresAt
-        }
+          expiresAt: getSession.expiresAt,
+        },
       });
 
       //mark previous refresh token as consumed.
       await tx.refreshToken.update({
         where: {
-          id: getRefreshToken.id
+          id: getRefreshToken.id,
         },
         data: {
           consumedAt: new Date(),
-          replacedById: newRefreshToken.id
-        }
+          replacedById: newRefreshToken.id,
+        },
       });
 
       // update the last used in session
       await tx.session.update({
         where: {
-          id: getSession.id
+          id: getSession.id,
         },
         data: {
-          lastUsedAt: new Date()
-        }
+          lastUsedAt: new Date(),
+        },
       });
 
       return {
         status: "SUCCESS",
         userId: getSession.userId,
         sessionId: getSession.id,
-      }
+      };
     });
     return result;
-  }
+  };
 
   updateSessionAndRefreshTokenBySessionId = async (sessionId) => {
     await prisma.$transaction(async (tx) => {
       await tx.session.updateMany({
         where: {
           id: sessionId,
-          revokedAt: null
+          revokedAt: null,
         },
         data: {
-          revokedAt: new Date()
+          revokedAt: new Date(),
         },
       });
 
       await tx.refreshToken.updateMany({
         where: {
           sessionId,
-          revokedAt: null
+          revokedAt: null,
         },
         data: {
-          revokedAt: new Date()
-        }
+          revokedAt: new Date(),
+        },
       });
     });
-  }
+  };
 
   fetchAllSessionAndUpdateSessionAndRefreshTokenByUserId = async (userId) => {
     await prisma.$transaction(async (tx) => {
       const getSessions = await tx.session.findMany({
         where: {
           userId,
-          revokedAt: null
+          revokedAt: null,
         },
         select: {
-          id: true
-        }
+          id: true,
+        },
       });
 
       const sessionIds = getSessions.map((session) => session.id);
@@ -189,27 +209,26 @@ class AuthRepository {
       await tx.session.updateMany({
         where: {
           userId,
-          revokedAt: null
+          revokedAt: null,
         },
         data: {
-          revokedAt: new Date()
-        }
+          revokedAt: new Date(),
+        },
       });
 
       await tx.refreshToken.updateMany({
         where: {
           sessionId: {
-            in: sessionIds
+            in: sessionIds,
           },
-          revokedAt: null
+          revokedAt: null,
         },
         data: {
-          revokedAt: new Date()
-        }
+          revokedAt: new Date(),
+        },
       });
-
     });
-  }
+  };
 
   fetchSessionByUserIdAndSessionId = async (sessionId, userId) => {
     return await prisma.session.findFirst({
@@ -218,16 +237,16 @@ class AuthRepository {
         userId,
         revokedAt: null,
         expiresAt: {
-          gt: new Date()
+          gt: new Date(),
         },
         user: {
-          isActive: true
-        }
+          isActive: true,
+        },
       },
       select: {
-        id: true
-      }
+        id: true,
+      },
     });
-  }
+  };
 }
 export default new AuthRepository();

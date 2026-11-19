@@ -1,73 +1,85 @@
-import { Prisma } from "../../generated/prisma/client";
+
+import { Prisma } from "../../generated/prisma/client.js";
 import AppError from "../utils/app-error.utils.js";
 
-
-export function errorHandler(err, _, res, next) {
-    let statusCode = err.statusCode || 500;
-    let errorMessage = err.message || "Internal Server Error";
+export function errorHandler(err, req, res, next) {
 
     if (res.headersSent) {
         return next(err);
     }
 
+    let statusCode = 500;
+    let errorMessage = "Internal Server Error";
+    console.log(err)
 
     if (err instanceof AppError) {
+
         statusCode = err.statusCode;
         errorMessage = err.message;
+
     } else if (err instanceof Prisma.PrismaClientKnownRequestError) {
+
         switch (err.code) {
-            case "P2002": { // unique constraint
-                const fields =
-                    err.meta?.target ??
-                    err.meta?.driverAdapterError?.cause?.constraint?.fields;
+
+            case "P2002":
                 statusCode = 409;
-                errorMessage = `Already exists${fields ? `: ${[].concat(fields).join(", ")}` : ""}`;
+                errorMessage = "Resource already exists";
                 break;
-            }
-            case "P2025": // record not found (update/delete/...OrThrow)
+
+            case "P2025":
                 statusCode = 404;
-                errorMessage = err.meta?.cause || "Record not found";
+                errorMessage = "Requested resource not found";
                 break;
-            case "P2003": // foreign key constraint failed
+
+            case "P2003":
                 statusCode = 400;
-                errorMessage = "Related record does not exist or is still in use";
+                errorMessage = "Related resource does not exist or is still in use";
                 break;
-            case "P2000": // value too long for column
+
+            case "P2000":
                 statusCode = 400;
-                errorMessage = "Value too long for column";
+                errorMessage = "Provided value is too long";
                 break;
+
             default:
                 statusCode = 400;
                 errorMessage = "Database request error";
         }
-    } else if (err instanceof Prisma.PrismaClientValidationError) {
-        statusCode = 400;
-        errorMessage = "Invalid data sent to the database";
-    }// Database unreachable / failed to connect
-    else if (err instanceof Prisma.PrismaClientInitializationError) {
-        statusCode = 503;
-        errorMessage = "Database connection failed";
-    }
 
-    // JWT (if you use jsonwebtoken)
-    else if (err.name === "JsonWebTokenError") {
+    } else if (err instanceof Prisma.PrismaClientValidationError) {
+
+        statusCode = 400;
+        errorMessage = "Invalid data provided";
+
+    } else if (
+        err instanceof Prisma.PrismaClientInitializationError ||
+        err.code === "P1001" ||
+        err.code === "P1002"
+    ) {
+
+        statusCode = 503;
+        errorMessage = "Database service is currently unavailable";
+
+    } else if (err.name === "JsonWebTokenError") {
+
         statusCode = 401;
         errorMessage = "Invalid token";
+
     } else if (err.name === "TokenExpiredError") {
+
         statusCode = 401;
         errorMessage = "Token expired";
+
     }
 
-    const isProduction = process.env.NODE_ENV === "production";
+    // Log internal errors on the server
     if (statusCode >= 500) {
-        console.error(err);
+        console.error("Internal Server Error:", err);
     }
 
     return res.status(statusCode).json({
         success: false,
-        message: isProduction && statusCode >= 500
-            ? "Internal Server Error"
-            : errorMessage,
-        ...(!isProduction && { stack: err.stack }),
+        message: errorMessage,
+        statusCode
     });
 }

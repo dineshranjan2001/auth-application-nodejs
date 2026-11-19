@@ -1,6 +1,8 @@
 import authService from "../services/auth.service.js";
 
 
+const isProduction=process.env.NODE_ENV==="production"
+
 const refreshCookieOptions = {
     httpOnly: true,
     secure: isProduction,
@@ -11,6 +13,15 @@ const refreshCookieOptions = {
 
 
 class AuthController {
+    register=async(req,res)=>{
+        const registeredUserData=await authService.register(req?.body);
+        res.status(201).json({
+            success:true,
+            message:"Data created successfully",
+            data:registeredUserData
+        });
+    }
+
     login = async (req, res) => {
         const loginResult = await authService.login({
             ...req.body,

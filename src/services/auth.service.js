@@ -3,9 +3,16 @@ import AppError from "../utils/app-error.utils.js";
 import { generateAccessToken, generateRefreshToken, hashRefreshToken } from "../utils/token.utils.js";
 import authRepository from "../repositories/auth.repository.js";
 
-const REFRESH_DAYS = 30;
+const REFRESH_DAYS = process.env.REFRESH_DAYS;
 
 class AuthService {
+    register=async(userData)=>{
+        const {password,...otherUserData}=userData;
+        const hashedPassword=await bcrypt.hash(password,12);
+        const registeredUserData=await authRepository.register({...otherUserData,password:hashedPassword});
+        return registeredUserData;
+    }
+
     login = async (loginRequestData) => {
         const getUserDetails = await authRepository.fetchUserByEmail(loginRequestData?.email);
         if (!getUserDetails || !getUserDetails.isActive) {
