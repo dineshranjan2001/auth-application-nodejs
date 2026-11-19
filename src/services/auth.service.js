@@ -3,6 +3,7 @@ import AppError from "../utils/app-error.utils.js";
 import { generateAccessToken, generateRefreshToken, hashRefreshToken } from "../utils/token.utils.js";
 import authRepository from "../repositories/auth.repository.js";
 
+const REFRESH_DAYS = 30;
 
 class AuthService {
     login = async (loginRequestData) => {
