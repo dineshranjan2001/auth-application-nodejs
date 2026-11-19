@@ -58,5 +58,43 @@ class AuthController {
             },
         });
     }
+
+    logout = async (req, res) => {
+        const refreshToken = req.cookies?.refreshToken;
+        if (refreshToken) {
+            await authService.logout(refreshToken);
+        }
+        res.clearCookie("refreshToken", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            path: '/api/v1/auth'
+        });
+        return res.status(200).json({
+            success: true,
+            message: "Logged out successfully"
+        });
+    }
+
+    logoutAll = async (req, res) => {
+        const userId = req?.auth?.userId;
+        if (userId) {
+            return res.status(401).json({
+                success: false,
+                message: "Unauthorized",
+            });
+        }
+        await authService.logoutAll(userId);
+        res.clearCookie("refreshToken", {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            path: '/api/v1/auth'
+        });
+        return res.status(200).json({
+            success: true,
+            message: "Logged out from all devices"
+        });
+    }
 }
 export default new AuthController();

@@ -1,5 +1,5 @@
 import { Prisma } from "../../generated/prisma/client";
-import AppError from "../utils/apperror.utils.js";
+import AppError from "../utils/app-error.utils.js";
 
 
 export function errorHandler(err, _, res, next) {

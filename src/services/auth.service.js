@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import AppError from "../utils/apperror.utils.js";
+import AppError from "../utils/app-error.utils.js";
 import { generateAccessToken, generateRefreshToken, hashRefreshToken } from "../utils/token.utils.js";
 import authRepository from "../repositories/auth.repository.js";
 
@@ -16,7 +16,7 @@ class AuthService {
         }
 
         const generateNewRefreshToken = generateRefreshToken();
-        const hasedRefreshToken = hashRefreshToken(generateNewRefreshToken);
+        const hashedRefreshToken = hashRefreshToken(generateNewRefreshToken);
         const expiresAt = new Date(
             Date.now() + REFRESH_DAYS * 24 * 60 * 60 * 1000
         );
@@ -27,7 +27,7 @@ class AuthService {
             ipAddress: loginRequestData?.ipAddress,
             deviceInfo: loginRequestData?.userAgent,
             expiresAt,
-        }, hasedRefreshToken);
+        }, hashedRefreshToken);
 
         const generateNewAccessToken = generateAccessToken(getUserDetails.id, newSession.id);
         return {
@@ -50,8 +50,8 @@ class AuthService {
         }
 
         const newRefreshToken=generateRefreshToken();
-        const hashedNewRfreshToken=hashRefreshToken(newRefreshToken);
-        const operationResult=await authRepository.checkRefreshTokenAndOperationSession(oldRefreshTokenHashed,hashedNewRfreshToken,getRefreshTokenData.sessionId);
+        const hashedNewRefreshToken=hashRefreshToken(newRefreshToken);
+        const operationResult=await authRepository.checkRefreshTokenAndOperationSession(oldRefreshTokenHashed,hashedNewRefreshToken,getRefreshTokenData.sessionId);
         if(operationResult.status==="REUSED"){
             throw new AppError("Refresh token reuse detected. Session revoked.",400);
         }
@@ -63,6 +63,23 @@ class AuthService {
             accessToken,
             refreshToken:newRefreshToken
         };
+    }
+
+    logout=async(refreshToken)=>{
+        if(!refreshToken){
+            return;
+        }
+
+        const hashedRefreshToken=hashRefreshToken(refreshToken);
+        const getRefreshTokenAndSessionData=await authRepository.fetchRefreshTokenByToken(hashedRefreshToken);
+        if(!getRefreshTokenAndSessionData){
+            return;
+        }
+        await authRepository.updateSessionAndRefreshTokenBySessionId(getRefreshTokenAndSessionData.sessionId);
+    }
+
+    logoutAll=async(userId)=>{
+        await authRepository.fetchAllSessionAndUpdateSessionAndRefreshTokenByUserId(userId);
     }
 }
 
