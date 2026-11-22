@@ -1,16 +1,5 @@
+import { clearRefreshTokenCookie, setRefreshTokenCookie } from "../configs/cookie.config.js";
 import authService from "../services/auth.service.js";
-
-
-const isProduction=process.env.NODE_ENV==="production"
-
-const refreshCookieOptions = {
-    httpOnly: true,
-    secure: isProduction,
-    sameSite: "lax",
-    path: "/api/v1/auth",
-    maxAge: 30 * 24 * 60 * 60 * 1000,
-};
-
 
 class AuthController {
     register=async(req,res)=>{
@@ -28,11 +17,11 @@ class AuthController {
             userAgent: req.get('user-agent'),
             ipAddress: req.ip
         })
-        res.cookie(
-            "refreshToken",
-            loginResult.refreshToken,
-            refreshCookieOptions
-        );
+
+        setRefreshTokenCookie(res,loginResult.refreshToken,{
+            path:'/api/v1/auth',
+        });
+
         res.status(200).json({
             success: true,
             message: "Login successful",
@@ -42,25 +31,16 @@ class AuthController {
             },
         });
 
-
-
     }
 
     refreshToken = async (req, res) => {
         const refreshToken = req.cookies?.refreshToken;
-        if (!refreshToken) {
-            return res.status(401).json({
-                success: false,
-                message: "Refresh token required",
-            });
-        }
         const result = await authService.refreshToken(refreshToken);
-        res.cookie(
-            "refreshToken",
-            result.refreshToken,
-            refreshCookieOptions
-        );
+        setRefreshTokenCookie(res,result.refreshToken,{
+            path:'/api/v1/auth'
+        });
 
+    
         return res.status(200).json({
             success: true,
             message: "Token refreshed successfully",
@@ -75,11 +55,8 @@ class AuthController {
         if (refreshToken) {
             await authService.logout(refreshToken);
         }
-        res.clearCookie("refreshToken", {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
-            path: '/api/v1/auth'
+         clearRefreshTokenCookie(res,{
+            path:"/api/v1/auth"
         });
         return res.status(200).json({
             success: true,
@@ -89,22 +66,25 @@ class AuthController {
 
     logoutAll = async (req, res) => {
         const userId = req?.auth?.userId;
-        if (userId) {
-            return res.status(401).json({
-                success: false,
-                message: "Unauthorized",
-            });
-        }
         await authService.logoutAll(userId);
-        res.clearCookie("refreshToken", {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'lax',
-            path: '/api/v1/auth'
+
+        clearRefreshTokenCookie(res,{
+            path:"/api/v1/auth"
         });
+
         return res.status(200).json({
             success: true,
             message: "Logged out from all devices"
+        });
+    }
+
+    profile=async(req,res)=>{
+        const userId=req?.auth.userId;
+        const getUserProfileInfo=await authService.profile(userId);
+        return res.status(200).json({
+            success:true,
+            message:"Profile fetched successfully",
+            data:getUserProfileInfo
         });
     }
 }

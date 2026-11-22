@@ -1,6 +1,12 @@
 
 import { Prisma } from "../../generated/prisma/client.js";
+import { clearRefreshTokenCookie } from "../configs/cookie.config.js";
+import { ErrorCode } from "../enums/errorcode.enum.js";
 import AppError from "../utils/app-error.utils.js";
+
+const errorCodeSet=new Set(
+    Object.values(ErrorCode).filter((code)=>code.startsWith("REFRESH_TOKEN_") || code==="SESSION_REVOKED")
+);
 
 export function errorHandler(err, req, res, next) {
 
@@ -10,9 +16,14 @@ export function errorHandler(err, req, res, next) {
 
     let statusCode = 500;
     let errorMessage = "Internal Server Error";
+    console.log("Path in middleware ",req.path);
     console.log(err)
-
     if (err instanceof AppError) {
+        if(errorCodeSet.has(err.code) && req.path==="/refresh"){
+            clearRefreshTokenCookie(res,{
+                path:"/api/v1/auth"
+            });
+        }
 
         statusCode = err.statusCode;
         errorMessage = err.message;

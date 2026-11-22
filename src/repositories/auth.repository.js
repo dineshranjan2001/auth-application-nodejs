@@ -2,20 +2,20 @@ import { prisma } from "../configs/prisma-client.config.js";
 
 class AuthRepository {
   register = async (userData) => {
-    const createdUserData=await prisma.user.create({
+    const createdUserData = await prisma.user.create({
       data: userData,
-      select:{
+      select: {
         id: true,
         name: true,
         email: true,
         isActive: true,
         createdAt: true,
         updatedAt: true,
-      }
+      },
     });
     //const {password:_,...otherUserData}=createdUserData;
     return createdUserData;
-  }
+  };
 
   fetchUserByEmail = async (email) => {
     return await prisma.user.findUnique({
@@ -33,6 +33,7 @@ class AuthRepository {
           userAgent: sessionData?.userAgent,
           ipAddress: sessionData?.ipAddress,
           deviceInfo: sessionData?.userAgent,
+          lastUsedAt:sessionData?.lastUsedAt,
           expiresAt: sessionData?.expiresAt,
         },
       });
@@ -245,6 +246,20 @@ class AuthRepository {
       },
       select: {
         id: true,
+      },
+    });
+  };
+
+  fetchUserDetailsById = async (userId) => {
+    return await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        isActive: true,
       },
     });
   };

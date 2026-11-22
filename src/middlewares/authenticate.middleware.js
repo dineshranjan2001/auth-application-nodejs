@@ -2,8 +2,7 @@ import authRepository from "../repositories/auth.repository.js";
 import AppError from "../utils/app-error.utils.js";
 import { verifyAccessToken } from "../utils/token.utils.js";
 
-export const authenticate = async (err, req, res, next) => {
-
+export const authenticate = async (req, res, next) => {
     const authorization = req.headers.authorization;
     if (!authorization?.startsWith("Bearer ")) {
         // return res.status(401).json({
