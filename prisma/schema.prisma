@@ -16,7 +16,8 @@ model User {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  sessions Session[]
+  sessions  Session[]
+  userRoles UserRole[]
 
   @@map("user_info")
 }
@@ -55,4 +56,56 @@ model RefreshToken {
   @@index([sessionId])
   @@index([expiresAt])
   @@map("refresh_token")
+}
+
+model Role {
+  id              String           @id @default(uuid())
+  roleName        String           @unique @map("role_name")
+  roleDescription String?          @map("role_description")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+  userRoles       UserRole[]
+  rolePermissions RolePermission[]
+
+  @@index([roleName])
+  @@map("role_info")
+}
+
+model Permission {
+  id                    String           @id @default(uuid())
+  permissionCode        String           @unique @map("permission_code")
+  permissionDescription String?          @map("permission_description")
+  createdAt             DateTime         @default(now()) @map("created_at")
+  rolePermissions       RolePermission[]
+
+  @@index([permissionCode])
+  @@map("permission_info")
+}
+
+model UserRole {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id") @db.Uuid
+  roleId     String   @map("role_id") @db.Uuid
+  assignedAt DateTime @default(now()) @map("assigned_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId])
+  @@index([userId])
+  @@index([roleId])
+  @@map("user_role_info")
+}
+
+model RolePermission {
+  id           String @id @default(uuid())
+  roleId       String @map("role_id") @db.Uuid
+  permissionId String @map("permission_id") @db.Uuid
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@index([roleId])
+  @@index([permissionId])
 }
