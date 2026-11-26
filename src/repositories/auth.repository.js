@@ -246,6 +246,29 @@ class AuthRepository {
       },
       select: {
         id: true,
+        user:{
+          select:{
+            id:true,
+            userRoles:{
+              select:{
+                role:{
+                  select:{
+                    roleName:true,
+                    rolePermissions:{
+                      select:{
+                        permission:{
+                          select:{
+                            permissionCode:true
+                          },
+                        },
+                      },
+                    },
+                  }
+                },
+              },
+            },
+          },
+        },
       },
     });
   };
