@@ -59,7 +59,7 @@ model RefreshToken {
 }
 
 model Role {
-  id              String           @id @default(uuid())
+  id              String           @id @default(uuid()) @db.Uuid
   roleName        String           @unique @map("role_name")
   roleDescription String?          @map("role_description")
   createdAt       DateTime         @default(now()) @map("created_at")
@@ -72,7 +72,7 @@ model Role {
 }
 
 model Permission {
-  id                    String           @id @default(uuid())
+  id                    String           @id @default(uuid()) @db.Uuid
   permissionCode        String           @unique @map("permission_code")
   permissionDescription String?          @map("permission_description")
   createdAt             DateTime         @default(now()) @map("created_at")
@@ -83,7 +83,7 @@ model Permission {
 }
 
 model UserRole {
-  id         String   @id @default(uuid())
+  id         String   @id @default(uuid()) @db.Uuid
   userId     String   @map("user_id") @db.Uuid
   roleId     String   @map("role_id") @db.Uuid
   assignedAt DateTime @default(now()) @map("assigned_at")
@@ -98,7 +98,7 @@ model UserRole {
 }
 
 model RolePermission {
-  id           String @id @default(uuid())
+  id           String @id @default(uuid()) @db.Uuid
   roleId       String @map("role_id") @db.Uuid
   permissionId String @map("permission_id") @db.Uuid
 
@@ -108,4 +108,5 @@ model RolePermission {
   @@unique([roleId, permissionId])
   @@index([roleId])
   @@index([permissionId])
+  @@map("role_permission")
 }

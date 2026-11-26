@@ -14,7 +14,7 @@ export const requiredPermissions=(...permissions)=>{
       const userPermissions=new Set(req?.auth?.permissions);
 
     //check every permisssions which is passed in the method parameters match with the userPermissions whether it is present or not. 
-      const hasAllPermissions=permissions.every((permission)=>userPermission.has(permission));
+      const hasAllPermissions=permissions.every((permission)=>userPermissions.has(permission));
       if(!hasAllPermissions){
         throw new AppError("You do not have permission to perform this action",403,ErrorCode.FORBIDDEN)
       }
