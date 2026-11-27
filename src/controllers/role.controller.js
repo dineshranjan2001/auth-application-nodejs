@@ -31,9 +31,14 @@ class RoleController{
     }
 
     getAllRoles=async(req,res)=>{
-        const page=req?.query?.page || 0;
-        const limit=req?.query?.limit || 10;
-        const getAllRolesInfo=await roleService.getAllRolesInfo(page,limit);
+        const filter={
+            page:req?.query?.page,
+            limit:req?.query?.limit,
+            search:req?.query?.search || "",
+            sortBy:req?.query?.sortBy || "createdAt",
+            sortOrder:req?.query?.sortOrder || "asc"
+        };
+        const getAllRolesInfo=await roleService.getAllRolesInfo(filter);
          res.status(201).json({
             success:true,
             message:"Data fetched successfully",
