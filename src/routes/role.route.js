@@ -9,6 +9,6 @@ roleRoutes.put("/update/:roleId",authenicate,roleController.update);
 roleRoutes.get("/get/:roleId",authenicate,roleController.getById);
 roleRoutes.get("/get",authenicate,roleController.getAllRoles);
 roleRoutes.post("/assign",authenicate,roleController.‎assignRoleToUser);
-roleRoutes.get("/revoke",authenicate,roleController.revokeRoleFromUser);
+roleRoutes.delete("/revoke",authenicate,roleController.revokeRoleFromUser);
 
 export default roleRoutes;
