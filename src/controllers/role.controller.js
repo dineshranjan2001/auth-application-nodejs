@@ -38,7 +38,7 @@ class RoleController{
             sortBy:req?.query?.sortBy || "createdAt",
             sortOrder:req?.query?.sortOrder || "asc"
         };
-        const getAllRolesInfo=await roleService.getAllRolesInfo(filter);
+        const getAllRolesInfo=await roleService.getAllRoles(filter);
          res.status(201).json({
             success:true,
             message:"Data fetched successfully",
