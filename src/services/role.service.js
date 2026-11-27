@@ -13,7 +13,7 @@ class RoleService{
     }
 
     update=async(roleId,roleData)=>{
-        if(!roleId){
+        if(!roleId || typeof roleId!=="string"){
             throw new AppError("role id is missing",400,ErrorCode.BAD_REQUEST);
         }
 
@@ -27,7 +27,7 @@ class RoleService{
     }
 
     getById=async(roleId)=>{
-        if(!roleId){
+        if(!roleId || typeof roleId!=="string"){
             throw new AppError("role id is missing",400,ErrorCode.BAD_REQUEST);
         }
         const getRoleInfo=await roleRepository.fetchRoleById(roleId);
@@ -41,7 +41,28 @@ class RoleService{
         const getAllRolesInfo=await roleRepository.getAllRoles(filter);
         return getAllRolesInfo;
     }
+
+    ‎assignRoleToUser=async(userId,roleId)=>{
+        if(!userId || typeof userId!=="string"){
+            throw new AppError("user id is missing or invalid user id",400,ErrorCode.BAD_REQUEST);
+        }
+        if(!roleId || typeof roleId!=="string"){
+            throw new AppError("role id is missing or invalid role id",400,ErrorCode.BAD_REQUEST);
+        }
+        const assignedRoleToUserInfo=await roleRepository.assignRoleToUser(userId,roleId);
+        return assignedRoleToUserInfo;
+    }
     
+‎    revokeRoleFromUser=async(userId,roleId)=>{
+        if(!userId || typeof userId!=="string"){
+            throw new AppError("user id is missing or invalid user id",400,ErrorCode.BAD_REQUEST);
+        }
+        if(!roleId || typeof roleId!=="string"){
+            throw new AppError("role id is missing or invalid role id",400,ErrorCode.BAD_REQUEST);
+        }
+        const rovokedRoleFromUser=await roleRepository.revokeRoleFromUser(userId,roleId);
+        return rovokedRoleFromUser;
+    }
 
 }
 export default new RoleService();
