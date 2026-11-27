@@ -37,6 +37,10 @@ class RoleService{
         return  getRoleInfo;
     }
 
+    getAllRoles=async(filter)=>{
+        const getAllRolesInfo=await roleRepository.getAllRoles(filter);
+        return getAllRolesInfo;
+    }
     
 
 }
