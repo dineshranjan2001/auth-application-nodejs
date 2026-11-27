@@ -39,6 +39,24 @@ class RoleRepository{
       allowedSortFields:["roleName","roleDescription","createdAt"]
     });
   }
+
+  assignRoleToUser=async(userId,roleId)=>{
+    return await prisma.userRole.create({
+      data:{
+        userId,
+        roleId
+      }
+    });
+  }
+
+  revokeRoleFromUser=async(userId,roleId)=>{
+    return await prisma.userRole.delete({
+      where:{
+        userId,
+        roleId
+      }
+    });
+  }
   
 }
 
