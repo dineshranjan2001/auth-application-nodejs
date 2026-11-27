@@ -3,6 +3,7 @@ import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth.route.js";
+import roleRoutes from "./routes/role.route.js";
 import rateLimit from "express-rate-limit";
 import { errorHandler } from "./middlewares/errorhandler.middleware.js";
 
@@ -29,6 +30,7 @@ app.use(rateLimit({
 }));
 
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/auth",roleRoutes);
 
 // Protected example API
 // app.get(
